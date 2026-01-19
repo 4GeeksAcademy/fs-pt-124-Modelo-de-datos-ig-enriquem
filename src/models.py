@@ -12,82 +12,60 @@ class User(db.Model):
     username: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
 
-    followers: Mapped[List["Follower"]] = relationship(back_populates="user")
-    posts: Mapped[List["Post"]] = relationship(back_populates="user")
-    comments: Mapped[List["Comment"]] = relationship(back_populates="user")
-    likes: Mapped[List["Like"]] = relationship(back_populates="user")
+    #foreign key
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            # do not serialize the password, its a security breach
-        }
-    
+    #relationships
+    posts: Mapped[List["Post"]] = relationship(back_populates="author")
+    user_comments: Mapped[List["Comment"]] = relationship(back_populates="comment_author")
+    user_likes: Mapped[List["Like"]] = relationship(back_populates="like_user")
+    follower_by: Mapped[List["Follower"]] = relationship(foreign_keys="Followers.follower_by_user_id", back_populates="follower_by_user")
+    follower_of: Mapped[List["Follower"]] = relationship(foreign_keys="Followers.follower_of_user_id", back_populates="follower_of_user")
 class Follower(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    follow_of: Mapped[int] = mapped_column(nullable=False)
-    follow_by: Mapped[int] = mapped_column(nullable=False)
-    
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    user: Mapped["User"] = relationship(back_populates="followers")
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            # do not serialize the password, its a security breach
-        }
-    
+    #foreign key
+    follower_by_user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    follower_of_user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+
+    #relationships
+    follower_by_user: Mapped["User"] = relationship(foreign_keys=[follower_by_user_id], back_populates="user_followers")
+    follower_of_user: Mapped["User"] = relationship(foreign_keys=[follower_of_user_id], back_populates="user_followers")
 class Post(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     post_name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    post_img: Mapped[str] = mapped_column(String(300), unique=True, nullable=False)
-    id_user: Mapped[int] = mapped_column(nullable=False)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    user: Mapped["User"] = relationship(back_populates="posts")
-    comments: Mapped[List["Comment"]] = relationship(back_populates="posts")
-    likes: Mapped[List["Like"]] = relationship(back_populates="posts")
+    post_img: Mapped[str] = mapped_column(String(300), nullable=False)
+    user_list: Mapped[str] = mapped_column(String(120), nullable=False)
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            # do not serialize the password, its a security breach
-        }
-    
+    #foreign key
+    author_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+
+    #relationships
+    author: Mapped["User"] = relationship(back_populates="posts")
+    post_comments: Mapped[List["Comment"]] = relationship(back_populates="comment_post")
+    post_likes: Mapped[List["Like"]] = relationship(back_populates="like_post")
+
+
 class Comment(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    text: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
+    text: Mapped[str] = mapped_column(String(250), nullable=False)
     
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    user: Mapped["User"] = relationship(back_populates="comments")
-    post_id: Mapped[int] = mapped_column(ForeignKey("post.id"))
-    post: Mapped["Post"] = relationship(back_populates="comments")
+    #foreign key
+    comment_author_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    comment_post_id: Mapped[int] = mapped_column(ForeignKey("post.id"))
+    #relationships
+    comment_author: Mapped["User"] = relationship(back_populates="user_comments")
+    comment_post: Mapped["Post"] = relationship(back_populates="post_comments")
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            # do not serialize the password, its a security breach
-        }
-    
 class Like(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_list: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    user: Mapped["User"] = relationship(back_populates="likes")
-    post_id: Mapped[int] = mapped_column(ForeignKey("post.id"))
-    post: Mapped["Post"] = relationship(back_populates="likes")
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            # do not serialize the password, its a security breach
-        }
+    #foreign key
+    like_post_id: Mapped[int] = mapped_column(ForeignKey("post.id"))
+    like_user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    #relationships
+    like_post: Mapped["Post"] = relationship(back_populates="post_likes")
+    like_user: Mapped["User"] = relationship(back_populates="user_likes")
