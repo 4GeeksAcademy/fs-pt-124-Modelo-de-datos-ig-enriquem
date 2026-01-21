@@ -18,8 +18,9 @@ class User(db.Model):
     posts: Mapped[List["Post"]] = relationship(back_populates="author")
     user_comments: Mapped[List["Comment"]] = relationship(back_populates="comment_author")
     user_likes: Mapped[List["Like"]] = relationship(back_populates="like_user")
-    follower_by: Mapped[List["Follower"]] = relationship(foreign_keys="Followers.follower_by_user_id", back_populates="follower_by_user")
-    follower_of: Mapped[List["Follower"]] = relationship(foreign_keys="Followers.follower_of_user_id", back_populates="follower_of_user")
+    follower_by: Mapped[List["Follower"]] = relationship(foreign_keys="Follower.follower_by_user_id", back_populates="follower_by_user")
+    follower_of: Mapped[List["Follower"]] = relationship(foreign_keys="Follower.follower_of_user_id", back_populates="follower_of_user")
+    
 class Follower(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -29,8 +30,8 @@ class Follower(db.Model):
     follower_of_user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     #relationships
-    follower_by_user: Mapped["User"] = relationship(foreign_keys=[follower_by_user_id], back_populates="user_followers")
-    follower_of_user: Mapped["User"] = relationship(foreign_keys=[follower_of_user_id], back_populates="user_followers")
+    follower_by_user: Mapped["User"] = relationship(foreign_keys=[follower_by_user_id], back_populates="follower_by")
+    follower_of_user: Mapped["User"] = relationship(foreign_keys=[follower_of_user_id], back_populates="follower_of")
 class Post(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
